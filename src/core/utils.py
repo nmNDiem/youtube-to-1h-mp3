@@ -9,7 +9,21 @@ def get_bundle_dir():
         return Path(sys._MEIPASS)
     else:
         # Running from source
+        # Points to project root (parent of src)
         return Path(__file__).parent.parent.parent
+
+def init_ffmpeg_env():
+    """Initialize ffmpeg environment by adding bundled bin to PATH"""
+    bundle_dir = get_bundle_dir()
+    bin_path = bundle_dir / "bin"
+    
+    if bin_path.exists():
+        # Add to PATH so pydub and yt-dlp can find ffmpeg/ffprobe
+        path_env = os.environ.get("PATH", "")
+        if str(bin_path) not in path_env:
+            os.environ["PATH"] = str(bin_path) + os.pathsep + path_env
+            return True
+    return False
 
 def get_ffmpeg_path():
     """Get the path to the ffmpeg executable"""
@@ -19,7 +33,7 @@ def get_ffmpeg_path():
     # Check in bin/ directory
     bin_path = bundle_dir / "bin" / ffmpeg_exe
     if bin_path.exists():
-        return str(bin_path)
+        return str(bin_path.absolute())
     
     # Fallback to system ffmpeg
     return "ffmpeg"
@@ -32,7 +46,8 @@ def get_ffprobe_path():
     # Check in bin/ directory
     bin_path = bundle_dir / "bin" / ffprobe_exe
     if bin_path.exists():
-        return str(bin_path)
+        return str(bin_path.absolute())
     
     # Fallback to system ffprobe
     return "ffprobe"
+
